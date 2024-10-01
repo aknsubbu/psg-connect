@@ -38,7 +38,7 @@ interface AcademicData {
 
 const AcademicResultsScreen: React.FC = () => {
   const [academicData, setAcademicData] = useState<AcademicData | null>(null);
-  const { data, isLoading, error, refreshData } = useStudentData();
+  const { data, isLoading, error, refreshData, isLoggedIn } = useStudentData();
   const colorScheme = useColorScheme();
   const paperTheme = useTheme();
   const screenWidth = Dimensions.get("window").width;
@@ -53,6 +53,37 @@ const AcademicResultsScreen: React.FC = () => {
     border: isDarkMode ? "#333333" : "#e0e0e0",
     error: isDarkMode ? "#cf6679" : "#b00020",
   };
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        refreshData();
+      }, 20000); // Retry after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [error, refreshData]);
+
+  // useEffect(() => {
+  //   let intervalId: NodeJS.Timeout;
+
+  //   if (isLoggedIn) {
+  //     // Fetch data immediately when logged in
+  //     refreshData();
+
+  //     // Set up interval to fetch data every 10 seconds
+  //     intervalId = setInterval(() => {
+  //       refreshData();
+  //     }, 10000);
+  //   }
+
+  //   // Clean up function to clear the interval when component unmounts or user logs out
+  //   return () => {
+  //     if (intervalId) {
+  //       clearInterval(intervalId);
+  //     }
+  //   };
+  // }, [isLoggedIn, refreshData]);
 
   useEffect(() => {
     if (data) {

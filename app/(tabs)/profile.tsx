@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
   TextInput,
   TouchableOpacity,
   useColorScheme,
+  Alert,
 } from "react-native";
 import {
   Avatar,
@@ -42,6 +43,8 @@ interface StudentData {
 const ProfileScreen: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loginRejected, setLoginRejected] = useState(false);
+  const [loginAttempted, setLoginAttempted] = useState(false);
   const { data, isLoading, error, isLoggedIn, login, refreshData, logout } =
     useStudentData();
   const colorScheme = useColorScheme();
@@ -63,9 +66,42 @@ const ProfileScreen: React.FC = () => {
 
   const studentProfile: StudentData | undefined = data?.student_profile;
 
-  const handleLogin = () => {
-    login(username, password);
-    console.log("Logging in...");
+  // useEffect(() => {
+  //   let intervalId: NodeJS.Timeout;
+
+  //   if (isLoggedIn) {
+  //     // Fetch data immediately when logged in
+  //     refreshData();
+
+  //     // Set up interval to fetch data every 10 seconds
+  //     intervalId = setInterval(() => {
+  //       refreshData();
+  //     }, 10000);
+  //   }
+
+  //   // Clean up function to clear the interval when component unmounts or user logs out
+  //   return () => {
+  //     if (intervalId) {
+  //       clearInterval(intervalId);
+  //     }
+  //   };
+  // }, [isLoggedIn, refreshData]);
+
+  const handleLogin = async () => {
+    try {
+      await login(username, password);
+      setLoginRejected(false);
+    } catch (error) {
+      console.error("Login error:", error);
+      setLoginRejected(true);
+      setUsername("");
+      setPassword("");
+      Alert.alert(
+        "Login Failed",
+        "Your login credentials were rejected. Please try again.",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   if (isLoading) {
@@ -94,6 +130,17 @@ const ProfileScreen: React.FC = () => {
           justifyContent: "center",
         }}
       >
+        {loginRejected && (
+          <Text
+            style={{
+              color: colors.error,
+              marginBottom: 16,
+              textAlign: "center",
+            }}
+          >
+            Login failed. Please enter your credentials again.
+          </Text>
+        )}
         <TextInput
           style={{
             height: 50,
@@ -136,12 +183,13 @@ const ProfileScreen: React.FC = () => {
           }}
           onPress={handleLogin}
         >
-          <Text style={{ color: "#ffffff", fontWeight: "bold" }}>Login</Text>
+          <Text style={{ color: "#ffffff", fontWeight: "bold" }}>
+            {loginRejected ? "Try Again" : "Login"}
+          </Text>
         </TouchableOpacity>
       </View>
     );
   }
-
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: "center", paddingVertical: 32 }}>

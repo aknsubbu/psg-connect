@@ -8,7 +8,7 @@ import {
   Credentials,
 } from "./secureCredStorage";
 
-const API_URL = "http://127.0.0.1:8000/fetch_data";
+const API_URL = "https://psg-connect-wt9qm.ondigitalocean.app/fetch_data";
 const STUDENT_DATA_FILE = FileSystem.documentDirectory + "student_data.json";
 
 interface StudentData {
@@ -29,7 +29,7 @@ class StudentDataManager {
   private static instance: StudentDataManager;
   private data: StudentData | null = null;
   private lastFetchTime: number = 0;
-  private readonly FETCH_INTERVAL = 3600000; // 1 hour in milliseconds
+  private readonly FETCH_INTERVAL = 10000; // 1 hour in milliseconds
 
   private constructor() {}
 

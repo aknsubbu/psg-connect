@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, View, useColorScheme } from "react-native";
 import {
   Card,
@@ -26,7 +26,7 @@ interface AttendanceModel {
 }
 
 const AttendancePage: React.FC = () => {
-  const { data, isLoading, error, refreshData } = useStudentData();
+  const { data, isLoading, error, refreshData, isLoggedIn } = useStudentData();
   const colorScheme = useColorScheme();
   const theme = useTheme();
 
@@ -44,6 +44,37 @@ const AttendancePage: React.FC = () => {
   };
 
   const attendance: AttendanceModel[] = data?.attendance || [];
+
+  // useEffect(() => {
+  //   let intervalId: NodeJS.Timeout;
+
+  //   if (isLoggedIn) {
+  //     // Fetch data immediately when logged in
+  //     refreshData();
+
+  //     // Set up interval to fetch data every 10 seconds
+  //     intervalId = setInterval(() => {
+  //       refreshData();
+  //     }, 10000);
+  //   }
+
+  //   // Clean up function to clear the interval when component unmounts or user logs out
+  //   return () => {
+  //     if (intervalId) {
+  //       clearInterval(intervalId);
+  //     }
+  //   };
+  // }, [isLoggedIn, refreshData]);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        refreshData();
+      }, 20000); // Retry after 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [error, refreshData]);
 
   if (isLoading) {
     return (
