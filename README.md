@@ -1,50 +1,118 @@
-# Welcome to your Expo app 👋
+# PSG Connect Expo React Native Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![PSG Connect](./assets/images/icon.png)
 
-## Get started
+This project is a mobile application built with Expo and React Native that provides a user-friendly interface for PSG Tech students to access their academic information.
 
-1. Install dependencies
+Link to Backend Repository :
+'''
+https://github.com/aknsubbu/psg-connect-backend
+'''
 
-   ```bash
+## Features
+
+- User authentication
+- Fetch and display student profile, attendance, exam results, and CA marks
+- Offline support and data persistence
+- Secure credential storage
+- Automatic data refresh
+
+## Requirements
+
+- Node.js 12+
+- Expo CLI
+- Yarn or npm
+
+## Installation
+
+1. Clone the repository:
+
+   ```
+   git clone https://github.com/yourusername/psg-connect-frontend.git
+   cd psg-connect-frontend
+   ```
+
+2. Install dependencies:
+
+   ```
+   yarn install
+   # or
    npm install
    ```
 
-2. Start the app
+3. Set up environment variables:
+   Create a `.env` file in the root directory and add the following:
 
-   ```bash
-    npx expo start
+   ```
+   API_URL=your_api_url_here
    ```
 
-In the output, you'll find options to open the app in a
+   Replace `your_api_url_here` with the URL where your backend API is hosted.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Usage
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Start the Expo development server:
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Use the Expo Go app on your mobile device to scan the QR code, or press 'i' to open in iOS Simulator or 'a' for Android Emulator.
 
-## Learn more
+## Project Structure
 
-To learn more about developing your project with Expo, look at the following resources:
+The project includes the following key files and components:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- `studentDataManager.ts`: Manages data fetching, storage, and caching
+- `useStudentData.ts`: Custom hook for managing student data state
+- `secureCredStorage.ts`: Handles secure storage of user credentials
 
-## Join the community
+## Student Data Manager
 
-Join our community of developers creating universal apps.
+The `studentDataManager` is a singleton class that handles data fetching, local storage, and caching. Key features include:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Fetching data from the server
+- Storing data locally using Expo's FileSystem
+- Implementing a fetch interval to refresh data periodically
+- Checking network connectivity before making requests
+
+Make sure to update the `API_URL` constant in `studentDataManager.ts` to match the URL in your `.env` file:
+
+```typescript
+const API_URL = process.env.API_URL || "your_default_api_url_here";
+```
+
+## Custom Hook: useStudentData
+
+The `useStudentData` hook provides a convenient way to manage student data in your components. It offers the following functionality:
+
+- Login and logout
+- Data fetching and refreshing
+- Loading and error state management
+
+Usage example:
+
+```typescript
+const { data, isLoading, error, isLoggedIn, login, refreshData, logout } =
+  useStudentData();
+```
+
+## Secure Credential Storage
+
+The project uses Expo's SecureStore to safely store user credentials. The `secureCredStorage.ts` file provides functions for saving, retrieving, and clearing credentials.
+
+## API Integration
+
+Ensure that the `API_URL` in your `.env` file and `studentDataManager.ts` is correctly set to your backend API URL.
+
+## Offline Support
+
+The application supports offline usage by storing fetched data locally. The `studentDataManager` handles data persistence and retrieval.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/my-new-feature`
+5. Submit a pull request
