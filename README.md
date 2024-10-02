@@ -1,13 +1,13 @@
 # PSG Connect Expo React Native Frontend
 
-![PSG Connect](./assets/images/icon.png)
+
 
 This project is a mobile application built with Expo and React Native that provides a user-friendly interface for PSG Tech students to access their academic information.
 
 Link to Backend Repository :
-'''
+
 https://github.com/aknsubbu/psg-connect-backend
-'''
+
 
 ## Features
 
