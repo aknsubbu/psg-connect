@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   Alert,
+  BackHandler,
 } from "react-native";
 import {
   Avatar,
@@ -17,6 +18,7 @@ import {
 } from "react-native-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useStudentData } from "@/hooks/useStudentData";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -40,11 +42,13 @@ interface StudentData {
   Address: string;
 }
 
+const MAX_LOGIN_ATTEMPTS = 15;
+
 const ProfileScreen: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loginRejected, setLoginRejected] = useState(false);
   const [loginAttempted, setLoginAttempted] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
   const { data, isLoading, error, isLoggedIn, login, refreshData, logout } =
     useStudentData();
   const colorScheme = useColorScheme();
@@ -66,42 +70,70 @@ const ProfileScreen: React.FC = () => {
 
   const studentProfile: StudentData | undefined = data?.student_profile;
 
-  // useEffect(() => {
-  //   let intervalId: NodeJS.Timeout;
+  useEffect(() => {
+    checkAppLockStatus();
+  }, []);
 
-  //   if (isLoggedIn) {
-  //     // Fetch data immediately when logged in
-  //     refreshData();
-
-  //     // Set up interval to fetch data every 10 seconds
-  //     intervalId = setInterval(() => {
-  //       refreshData();
-  //     }, 10000);
-  //   }
-
-  //   // Clean up function to clear the interval when component unmounts or user logs out
-  //   return () => {
-  //     if (intervalId) {
-  //       clearInterval(intervalId);
-  //     }
-  //   };
-  // }, [isLoggedIn, refreshData]);
+  const checkAppLockStatus = async () => {
+    try {
+      const lockedStatus = await AsyncStorage.getItem("isAppLocked");
+      if (lockedStatus === "true") {
+        showLockoutAlertAndExit();
+      }
+    } catch (error) {
+      console.error("Error checking app lock status:", error);
+    }
+  };
 
   const handleLogin = async () => {
     try {
       await login(username, password);
-      setLoginRejected(false);
+      setLoginAttempted(false);
+      setLoginAttempts(0);
     } catch (error) {
       console.error("Login error:", error);
-      setLoginRejected(true);
+      setLoginAttempted(true);
+      setLoginAttempts((prevAttempts) => {
+        const newAttempts = prevAttempts + 1;
+        if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+          lockAppAndExit();
+        } else {
+          Alert.alert(
+            "Login Failed",
+            `Your login credentials were rejected. Please try again. ${
+              MAX_LOGIN_ATTEMPTS - newAttempts
+            } attempts remaining.`
+          );
+        }
+        return newAttempts;
+      });
       setUsername("");
       setPassword("");
-      Alert.alert(
-        "Login Failed",
-        "Your login credentials were rejected. Please try again.",
-        [{ text: "OK" }]
-      );
     }
+  };
+
+  const lockAppAndExit = async () => {
+    try {
+      await AsyncStorage.setItem("isAppLocked", "true");
+      showLockoutAlertAndExit();
+    } catch (error) {
+      console.error("Error locking app:", error);
+      BackHandler.exitApp();
+    }
+  };
+
+  const showLockoutAlertAndExit = () => {
+    Alert.alert(
+      "App Locked",
+      "You have exceeded the maximum number of login attempts. The app is now locked. Please uninstall and reinstall the app to use it again.",
+      [
+        {
+          text: "Exit App",
+          onPress: () => BackHandler.exitApp(),
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   if (isLoading) {
@@ -130,7 +162,7 @@ const ProfileScreen: React.FC = () => {
           justifyContent: "center",
         }}
       >
-        {loginRejected && (
+        {loginAttempted && (
           <Text
             style={{
               color: colors.error,
@@ -184,12 +216,13 @@ const ProfileScreen: React.FC = () => {
           onPress={handleLogin}
         >
           <Text style={{ color: "#ffffff", fontWeight: "bold" }}>
-            {loginRejected ? "Try Again" : "Login"}
+            {loginAttempted ? "Try Again" : "Login"}
           </Text>
         </TouchableOpacity>
       </View>
     );
   }
+
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ alignItems: "center", paddingVertical: 32 }}>
